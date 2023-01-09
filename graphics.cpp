@@ -8,6 +8,18 @@ using namespace std;
 
 GLdouble width, height;
 Rect windowHidden;
+Rect windowPane1;
+Rect windowPane2;
+Rect windowPane3;
+Rect windowPane4;
+Rect windowPane5;
+Rect windowPane6;
+Rect windowPane7;
+Rect windowPane8;
+Rect windowPane9;
+Rect windowPane10;
+Rect windowPane11;
+Rect windowPane12;
 color grassGreen(114, 117, 27);
 
 Rect userHidden;
@@ -16,6 +28,24 @@ Sprite userCursor = initSprite("cursor0.png");
 Sprite userClick = initSprite("cursorClick.png");
 Sprite userGrab = initSprite("cursorGrab.png");
 Sprite userGrabbing = initSprite("cursorGrabbing.png");
+
+Sprite player;
+Sprite playerIdle1 = initSprite("knight1.png");
+Sprite playerIdle2 = initSprite("knight2.png");
+Sprite playerIdle3 = initSprite("knight3.png");
+Sprite playerIdle4 = initSprite("knight4.png");
+Sprite playerIdle5 = initSprite("knight5.png");
+Sprite playerIdle6 = initSprite("knight6.png");
+Sprite playerIdle7 = initSprite("knight7.png");
+Sprite playerIdle8 = initSprite("knight8.png");
+Sprite playerAim1 = initSprite("knightAim1.png");
+Sprite playerAim2 = initSprite("knightAim2.png");
+Sprite playerAim3 = initSprite("knightAim3.png");
+Sprite playerAim4 = initSprite("knightAim4.png");
+Sprite playerAim5 = initSprite("knightAim5.png");
+Sprite playerAim6 = initSprite("knightAim6.png");
+Sprite playerAim7 = initSprite("knightAim7.png");
+Sprite playerAim8 = initSprite("knightAim8.png");
 
 vector<unique_ptr<Sprite>> grassTileSet;
 int mapTileWidth;
@@ -57,15 +87,46 @@ void initGrass() {
     }
 }
 
+void initPlayer() {
+    player.setVec(playerIdle1.vec);
+    player.setSize(64, 64);
+    player.setScale(4);
+    player.setCenter(width/2, height/2);
+}
+
 void initUI() {
     windowHidden.setSize(width, height);
     windowHidden.setCenter(width/2, height/2);
+    windowPane1.setSize(width/2, height/2);
+    windowPane1.setCenter(width/4, height/4);
+    windowPane2.setSize(width/2, height/2);
+    windowPane2.setCenter(3*width/4, height/4);
+    windowPane3.setSize(width/2, height/2);
+    windowPane3.setCenter(width/4, 3*height/4);
+    windowPane4.setSize(width/2, height/2);
+    windowPane4.setCenter(3*width/4, 3*height/4);
+    windowPane5.setSize(width/4, height/4);
+    windowPane5.setCenter(3*width/8, height/8);
+    windowPane6.setSize(width/4, height/4);
+    windowPane6.setCenter(5*width/8, height/8);
+    windowPane7.setSize(width/4, height/4);
+    windowPane7.setCenter(width/8, 3*height/8);
+    windowPane8.setSize(width/4, height/4);
+    windowPane8.setCenter(7*width/8, 3*height/8);
+    windowPane9.setSize(width/4, height/4);
+    windowPane9.setCenter(width/8, 5*height/8);
+    windowPane10.setSize(width/4, height/4);
+    windowPane10.setCenter(7*width/8, 5*height/8);
+    windowPane11.setSize(width/4, height/4);
+    windowPane11.setCenter(3*width/8, 7*height/8);
+    windowPane12.setSize(width/4, height/4);
+    windowPane12.setCenter(5*width/8, 7*height/8);
 }
 
 void initUser() {
     // Initialize the user to be a 20x20 white block
     // centered in the top left corner of the graphics window
-    userHidden.setSize(32, 32);
+    userHidden.setSize(12, 12);
     userHidden.setCenter(0, 0);
     user.setVec(userCursor.vec);
     user.setCenter(0, 0);
@@ -78,6 +139,7 @@ void init() {
     initUI();
     initUser();
     initGrass();
+    initPlayer();
 }
 
 /* Initialize OpenGL Graphics */
@@ -124,6 +186,8 @@ void display() {
         }
     }
 
+    player.draw();
+
     user.draw();
 
     glFlush();  // Render now
@@ -162,16 +226,100 @@ void cursor(GLFWwindow* window, double x, double y) {
     // passed in as parameters to this function. This will make
     // the user block move with the mouse.
     glfwGetCursorPos(window, &x, &y);
-    user.setCenter(x+5, y+5);
-    userHidden.setCenter(x+5, y+5);
+    user.setCenter(x+8, y+8);
+    userHidden.setCenter(x, y);
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        if (userHidden.isOverlapping(windowPane1)) {
+            if (userHidden.isOverlapping(windowPane5)) player.setVec(playerAim7.vec);
+            else if (userHidden.isOverlapping(windowPane7)) player.setVec(playerAim5.vec);
+            else player.setVec(playerAim6.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane2)) {
+            if (userHidden.isOverlapping(windowPane6)) player.setVec(playerAim7.vec);
+            else if (userHidden.isOverlapping(windowPane8)) player.setVec(playerAim1.vec);
+            else player.setVec(playerAim8.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane3)) {
+            if (userHidden.isOverlapping(windowPane9)) player.setVec(playerAim5.vec);
+            else if (userHidden.isOverlapping(windowPane11)) player.setVec(playerAim3.vec);
+            else player.setVec(playerAim4.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane4)) {
+            if (userHidden.isOverlapping(windowPane10)) player.setVec(playerAim1.vec);
+            else if (userHidden.isOverlapping(windowPane12)) player.setVec(playerAim3.vec);
+            else player.setVec(playerAim2.vec);
+        }
+    }
+    else {
+        if (userHidden.isOverlapping(windowPane1)) {
+            if (userHidden.isOverlapping(windowPane5)) player.setVec(playerIdle7.vec);
+            else if (userHidden.isOverlapping(windowPane7)) player.setVec(playerIdle5.vec);
+            else player.setVec(playerIdle6.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane2)) {
+            if (userHidden.isOverlapping(windowPane6)) player.setVec(playerIdle7.vec);
+            else if (userHidden.isOverlapping(windowPane8)) player.setVec(playerIdle1.vec);
+            else player.setVec(playerIdle8.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane3)) {
+            if (userHidden.isOverlapping(windowPane9)) player.setVec(playerIdle5.vec);
+            else if (userHidden.isOverlapping(windowPane11)) player.setVec(playerIdle3.vec);
+            else player.setVec(playerIdle4.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane4)) {
+            if (userHidden.isOverlapping(windowPane10)) player.setVec(playerIdle1.vec);
+            else if (userHidden.isOverlapping(windowPane12)) player.setVec(playerIdle3.vec);
+            else player.setVec(playerIdle2.vec);
+        }
+    }
 }
 
 void mouse(GLFWwindow* window, int button, int action, int mods) {
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         user.setVec(userClick.vec);
+        if (userHidden.isOverlapping(windowPane1)) {
+            if (userHidden.isOverlapping(windowPane5)) player.setVec(playerAim7.vec);
+            else if (userHidden.isOverlapping(windowPane7)) player.setVec(playerAim5.vec);
+            else player.setVec(playerAim6.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane2)) {
+            if (userHidden.isOverlapping(windowPane6)) player.setVec(playerAim7.vec);
+            else if (userHidden.isOverlapping(windowPane8)) player.setVec(playerAim1.vec);
+            else player.setVec(playerAim8.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane3)) {
+            if (userHidden.isOverlapping(windowPane9)) player.setVec(playerAim5.vec);
+            else if (userHidden.isOverlapping(windowPane11)) player.setVec(playerAim3.vec);
+            else player.setVec(playerAim4.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane4)) {
+            if (userHidden.isOverlapping(windowPane10)) player.setVec(playerAim1.vec);
+            else if (userHidden.isOverlapping(windowPane12)) player.setVec(playerAim3.vec);
+            else player.setVec(playerAim2.vec);
+        }
     }
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
         user.setVec(userCursor.vec);
+        if (userHidden.isOverlapping(windowPane1)) {
+            if (userHidden.isOverlapping(windowPane5)) player.setVec(playerIdle7.vec);
+            else if (userHidden.isOverlapping(windowPane7)) player.setVec(playerIdle5.vec);
+            else player.setVec(playerIdle6.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane2)) {
+            if (userHidden.isOverlapping(windowPane6)) player.setVec(playerIdle7.vec);
+            else if (userHidden.isOverlapping(windowPane8)) player.setVec(playerIdle1.vec);
+            else player.setVec(playerIdle8.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane3)) {
+            if (userHidden.isOverlapping(windowPane9)) player.setVec(playerIdle5.vec);
+            else if (userHidden.isOverlapping(windowPane11)) player.setVec(playerIdle3.vec);
+            else player.setVec(playerIdle4.vec);
+        }
+        else if (userHidden.isOverlapping(windowPane4)) {
+            if (userHidden.isOverlapping(windowPane10)) player.setVec(playerIdle1.vec);
+            else if (userHidden.isOverlapping(windowPane12)) player.setVec(playerIdle3.vec);
+            else player.setVec(playerIdle2.vec);
+        }
     }
 }
 
