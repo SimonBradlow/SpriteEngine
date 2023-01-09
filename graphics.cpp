@@ -60,7 +60,10 @@ int mapTileWidth;
 int mapTileHeight;
 vector<vector<int>> grassCalcVec;
 vector<vector<optional<Sprite>>> grassDrawVec;
-Sprite mapBorder = initSprite("mapBorder.png");
+Sprite mapBorderTop = initSprite("mapBorderTop.png");
+Sprite mapBorderLeft = initSprite("mapBorderLeft.png");
+Sprite mapBorderBottom = initSprite("mapBorderBottom.png");
+Sprite mapBorderRight = initSprite("mapBorderRight.png");
 
 void initGrass() {
     grassTileSet.push_back(make_unique<Sprite>(initSprite("grass1.png")));
@@ -76,14 +79,14 @@ void initGrass() {
     grassTileSet.push_back(make_unique<Sprite>(initSprite("grass11.png")));
     grassTileSet.push_back(make_unique<Sprite>(initSprite("grass12.png")));
     grassTileSet.push_back(make_unique<Sprite>(initSprite("grass0.png")));
-    mapTileWidth = 25;
-    mapTileHeight = 14;
+    mapTileWidth = 13;
+    mapTileHeight = 7;
     for (int i=0; i<mapTileHeight; ++i) {
         vector<int> tempVec;
         tempVec.clear();
         for (int j=0; j<mapTileWidth; ++j) {
-            int tileChange = rand() % 4;
-            if (tileChange > 2) {
+            int tileChange = rand() % 3;
+            if (tileChange > 1) {
                 int newTile = rand() % 13;
                 //tempVec.push_back(make_optional(grassTileSet[newTile]));
                 tempVec.push_back(newTile);
@@ -130,9 +133,21 @@ void initUI() {
     windowPane11.setCenter(3*width/8, 7*height/8);
     windowPane12.setSize(width/4, height/4);
     windowPane12.setCenter(5*width/8, 7*height/8);
-    mapBorder.setScale(4);
-    mapBorder.setSize(2240, 1256);
-    mapBorder.setCenter(2240/2, 1256/2);
+    mapBorderTop.setScale(3);
+    mapBorderLeft.setScale(3);
+    mapBorderBottom.setScale(3);
+    mapBorderRight.setScale(3);
+    mapBorderTop.setSize(457.0*3.0, 64.0*3.0);
+    mapBorderTop.setCenter(260+(457.0*3.0)/2.0, (64.0*3.0)/2.0);
+    mapBorderLeft.setSize(91.0*3.0, 294.0*3.0);
+    mapBorderLeft.setCenter((91.0*3.0)/2.0, (294.0*3.0)/2.0);
+    mapBorderTop.setSize(457.0*3.0, 64.0*3.0);
+    mapBorderTop.setCenter((457.0*3.0)/.02, (64.0*3.0)/2.0);
+    mapBorderBottom.setSize(429.0*3.0, 68.0*3.0);
+    mapBorderBottom.setCenter(1400-((429.0*3.0)/2.0), 942-((68.0*3.0)/2.0));
+    mapBorderRight.setSize(95.0*3.0, 282.0*3.0);
+    mapBorderRight.setCenter(1680-((95.0*3.0)/2.0), 942-((282.0*3.0)/2.0));
+
 }
 
 void initUser() {
@@ -197,15 +212,22 @@ void display() {
             if (currTile < 13) {
                 unique_ptr<Sprite> &tempSprite = grassTileSet[currTile];
                 tempSprite->setVec(tempSprite->vec);
-                tempSprite->setSize(64, 64);
-                tempSprite->setScale(2);
-                tempSprite->setCenter(((j*64)+32-xDelta), ((i*64)+32-yDelta));
+                tempSprite->setSize(128, 128);
+                tempSprite->setScale(4);
+                tempSprite->setCenter(((j*128)+64-xDelta), ((i*128)+64-yDelta));
                 if (tempSprite->isOverlapping(windowHidden)) tempSprite->draw();
             }
         }
     }
+    mapBorderLeft.setCenter(((91.0*3.0)/2.0)-xDelta, ((294.0*3.0)/2.0)-yDelta);
+    mapBorderTop.setCenter(((457.0*3.0)/2.0)-xDelta+260, ((64.0*3.0)/2.0)-yDelta);
+    mapBorderBottom.setCenter(1400-xDelta-((429.0*3.0)/2.0), 942-yDelta-((68.0*3.0)/2.0));
+    mapBorderRight.setCenter(1680-xDelta-((95*3.0)/2.0), 942-yDelta-((282.0*3.0)/2.0));
+    if (mapBorderTop.isOverlapping(windowHidden)) mapBorderTop.draw();
     player.draw();
-    mapBorder.draw();
+    if (mapBorderLeft.isOverlapping(windowHidden)) mapBorderLeft.draw();
+    if (mapBorderBottom.isOverlapping(windowHidden)) mapBorderBottom.draw();
+    if (mapBorderRight.isOverlapping(windowHidden)) mapBorderRight.draw();
     user.draw();
 
     glFlush();  // Render now
@@ -363,10 +385,10 @@ void moveTimer(int dummy) {
     if ((aPressed) && (xDelta > 0.0)) {
         xDelta += -4.0;
     }
-    if ((sPressed) && (yDelta < 540.0)) {
+    if ((sPressed) && (yDelta < 560.0)) {
         yDelta += 4.0;
     }
-    if ((dPressed) && (xDelta < 960.0)) {
+    if ((dPressed) && (xDelta < 1040.0)) {
         xDelta += 4.0;
     }
 }
