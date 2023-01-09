@@ -1,6 +1,7 @@
 #include "graphics.h"
 #include "rect.h"
 #include "sprite.h"
+#include "lineDrawer.h"
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -28,8 +29,15 @@ Sprite userCursor = initSprite("cursor0.png");
 Sprite userClick = initSprite("cursorClick.png");
 Sprite userGrab = initSprite("cursorGrab.png");
 Sprite userGrabbing = initSprite("cursorGrabbing.png");
+bool isClicking;
 
 Sprite player;
+double xDelta;
+double yDelta;
+bool wPressed;
+bool aPressed;
+bool sPressed;
+bool dPressed;
 Sprite playerIdle1 = initSprite("knight1.png");
 Sprite playerIdle2 = initSprite("knight2.png");
 Sprite playerIdle3 = initSprite("knight3.png");
@@ -126,10 +134,11 @@ void initUI() {
 void initUser() {
     // Initialize the user to be a 20x20 white block
     // centered in the top left corner of the graphics window
-    userHidden.setSize(12, 12);
+    userHidden.setSize(1, 1);
     userHidden.setCenter(0, 0);
     user.setVec(userCursor.vec);
     user.setCenter(0, 0);
+    isClicking = false;
 }
 
 void init() {
@@ -180,14 +189,12 @@ void display() {
                 tempSprite->setVec(tempSprite->vec);
                 tempSprite->setSize(64, 64);
                 tempSprite->setScale(2);
-                tempSprite->setCenter(((j*64)+32), ((i*64)+32));
+                tempSprite->setCenter(((j*64)+32+xDelta), ((i*64)+32+yDelta));
                 if (tempSprite->isOverlapping(windowHidden)) tempSprite->draw();
             }
         }
     }
-
     player.draw();
-
     user.draw();
 
     glFlush();  // Render now
@@ -200,25 +207,38 @@ void kbd(GLFWwindow* window, int key, int scancode, int action, int mods) {
         glfwTerminate();
         exit(0);
     }
-    /*
+
+    // W
     if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-        for (unique_ptr<Shape> &s : grassDrawVec) {
-            // Move all the clouds to the left
-            s->moveX(-0.4);
-            // If a shape has moved off the screen
-            if (s->getCenterX() < -48) {
-                // Set it to the right of the screen so that it passes through again
-                s->setCenterX(width + 48);
-            }
-        }
+        wPressed = true;
     }
+    if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
+        wPressed = false;
+    }
+
+    // A
     if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+        aPressed = true;
     }
+    if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
+        aPressed = false;
+    }
+
+    // S
     if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+        sPressed = true;
     }
+    if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
+        sPressed = false;
+    }
+
+    // D
     if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+        dPressed = true;
     }
-              */
+    if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
+        dPressed = false;
+    }
 }
 
 void cursor(GLFWwindow* window, double x, double y) {
@@ -277,6 +297,7 @@ void cursor(GLFWwindow* window, double x, double y) {
 void mouse(GLFWwindow* window, int button, int action, int mods) {
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         user.setVec(userClick.vec);
+        isClicking = true;
         if (userHidden.isOverlapping(windowPane1)) {
             if (userHidden.isOverlapping(windowPane5)) player.setVec(playerAim7.vec);
             else if (userHidden.isOverlapping(windowPane7)) player.setVec(playerAim5.vec);
@@ -300,6 +321,7 @@ void mouse(GLFWwindow* window, int button, int action, int mods) {
     }
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
         user.setVec(userCursor.vec);
+        isClicking = false;
         if (userHidden.isOverlapping(windowPane1)) {
             if (userHidden.isOverlapping(windowPane5)) player.setVec(playerIdle7.vec);
             else if (userHidden.isOverlapping(windowPane7)) player.setVec(playerIdle5.vec);
@@ -323,12 +345,18 @@ void mouse(GLFWwindow* window, int button, int action, int mods) {
     }
 }
 
-void moveTimer(int dummy, int direction) {
-    for (unique_ptr<Sprite> &s : grassTileSet) {
-        if (direction == 0) s->moveY(1);
-        if (direction == 1) s->moveX(-1);
-        if (direction == 2) s->moveY(-1);
-        if (direction == 3) s->moveX(1);
+void moveTimer(int dummy) {
+    if (wPressed) {
+        yDelta += -2.0;
+    }
+    if (aPressed) {
+        xDelta += -2.0;
+    }
+    if (sPressed) {
+        yDelta += 2.0;
+    }
+    if (dPressed) {
+        xDelta += 2.0;
     }
 }
 
@@ -375,6 +403,7 @@ int main(int argc, char** argv) {
 
 
         if (time <= 0.f) {
+            moveTimer(0);
             display();
             glfwSwapBuffers(window);
             glfwPollEvents();
