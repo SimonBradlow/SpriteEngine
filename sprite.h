@@ -81,7 +81,7 @@ public:
                     tmp.setColor(*vec[j][i]);
                     tmp.setCenter(((getLeftX() + (scale/2)) + (i*scale)),
                                   ((getTopY() + (scale/2)) + (j*scale)));
-                    tmp.draw();
+                    if (tmp.getOpacity() >0) tmp.draw();
                 }
             }
         }

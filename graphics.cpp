@@ -60,6 +60,7 @@ int mapTileWidth;
 int mapTileHeight;
 vector<vector<int>> grassCalcVec;
 vector<vector<optional<Sprite>>> grassDrawVec;
+Sprite mapBorder = initSprite("mapBorder.png");
 
 void initGrass() {
     grassTileSet.push_back(make_unique<Sprite>(initSprite("grass1.png")));
@@ -75,8 +76,8 @@ void initGrass() {
     grassTileSet.push_back(make_unique<Sprite>(initSprite("grass11.png")));
     grassTileSet.push_back(make_unique<Sprite>(initSprite("grass12.png")));
     grassTileSet.push_back(make_unique<Sprite>(initSprite("grass0.png")));
-    mapTileWidth = 15;
-    mapTileHeight = 10;
+    mapTileWidth = 25;
+    mapTileHeight = 14;
     for (int i=0; i<mapTileHeight; ++i) {
         vector<int> tempVec;
         tempVec.clear();
@@ -129,6 +130,9 @@ void initUI() {
     windowPane11.setCenter(3*width/8, 7*height/8);
     windowPane12.setSize(width/4, height/4);
     windowPane12.setCenter(5*width/8, 7*height/8);
+    mapBorder.setScale(4);
+    mapBorder.setSize(2240, 1256);
+    mapBorder.setCenter(2240/2, 1256/2);
 }
 
 void initUser() {
@@ -139,6 +143,12 @@ void initUser() {
     user.setVec(userCursor.vec);
     user.setCenter(0, 0);
     isClicking = false;
+    xDelta = 0;
+    yDelta = 0;
+    wPressed = false;
+    aPressed = false;
+    sPressed = false;
+    dPressed = false;
 }
 
 void init() {
@@ -189,12 +199,13 @@ void display() {
                 tempSprite->setVec(tempSprite->vec);
                 tempSprite->setSize(64, 64);
                 tempSprite->setScale(2);
-                tempSprite->setCenter(((j*64)+32+xDelta), ((i*64)+32+yDelta));
+                tempSprite->setCenter(((j*64)+32-xDelta), ((i*64)+32-yDelta));
                 if (tempSprite->isOverlapping(windowHidden)) tempSprite->draw();
             }
         }
     }
     player.draw();
+    mapBorder.draw();
     user.draw();
 
     glFlush();  // Render now
@@ -346,17 +357,17 @@ void mouse(GLFWwindow* window, int button, int action, int mods) {
 }
 
 void moveTimer(int dummy) {
-    if (wPressed) {
-        yDelta += -2.0;
+    if ((wPressed) && (yDelta > 0.0)) {
+        yDelta += -4.0;
     }
-    if (aPressed) {
-        xDelta += -2.0;
+    if ((aPressed) && (xDelta > 0.0)) {
+        xDelta += -4.0;
     }
-    if (sPressed) {
-        yDelta += 2.0;
+    if ((sPressed) && (yDelta < 540.0)) {
+        yDelta += 4.0;
     }
-    if (dPressed) {
-        xDelta += 2.0;
+    if ((dPressed) && (xDelta < 960.0)) {
+        xDelta += 4.0;
     }
 }
 
