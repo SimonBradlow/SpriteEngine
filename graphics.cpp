@@ -7,12 +7,56 @@
 using namespace std;
 
 GLdouble width, height;
+Rect windowHidden;
+color grassGreen(114, 117, 27);
 
 Rect userHidden;
 Rect user1;
 Rect user2;
 
+vector<Sprite> grassTileSet;
+int mapTileWidth;
+int mapTileHeight;
+vector<vector<int>> grassCalcVec;
+vector<vector<optional<Sprite>>> grassDrawVec;
+
+void initGrass() {
+    grassTileSet.push_back(initSprite("grass1.png"));
+    grassTileSet.push_back(initSprite("grass2.png"));
+    grassTileSet.push_back(initSprite("grass3.png"));
+    grassTileSet.push_back(initSprite("grass4.png"));
+    grassTileSet.push_back(initSprite("grass5.png"));
+    grassTileSet.push_back(initSprite("grass6.png"));
+    grassTileSet.push_back(initSprite("grass7.png"));
+    grassTileSet.push_back(initSprite("grass8.png"));
+    grassTileSet.push_back(initSprite("grass9.png"));
+    grassTileSet.push_back(initSprite("grass10.png"));
+    grassTileSet.push_back(initSprite("grass11.png"));
+    grassTileSet.push_back(initSprite("grass12.png"));
+    grassTileSet.push_back(initSprite("grass0.png"));
+    mapTileWidth = 15;
+    mapTileHeight = 10;
+    for (int i=0; i<mapTileHeight; ++i) {
+        vector<int> tempVec;
+        tempVec.clear();
+        for (int j=0; j<mapTileWidth; ++j) {
+            int tileChange = rand() % 4;
+            if (tileChange > 2) {
+                int newTile = rand() % 13;
+                //tempVec.push_back(make_optional(grassTileSet[newTile]));
+                tempVec.push_back(newTile);
+            }
+            //else tempVec.push_back(grassTileSet[9]);
+            else tempVec.push_back(12);
+        }
+        //grassDrawVec.push_back(tempVec);
+        grassCalcVec.push_back(tempVec);
+    }
+}
+
 void initUI() {
+    windowHidden.setSize(width, height);
+    windowHidden.setCenter(width/2, height/2);
 }
 
 void initUser() {
@@ -29,17 +73,18 @@ void initUser() {
 }
 
 void init() {
-    width = 512;
-    height = 512;
+    width = 640;
+    height = 360;
     srand(time(nullptr));
     initUI();
     initUser();
+    initGrass();
 }
 
 /* Initialize OpenGL Graphics */
 void initGL() {
     // Set "clearing" or background color
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(114.0/256.0, 117.0/256.0, 27.0/256.0, 1.0f);
 }
 
 /* Handler for window-repaint event. Call back when the window first appears and
@@ -66,6 +111,19 @@ void display() {
     /*
      * Draw here
      */
+    for (int i=0; i<mapTileHeight; ++i) {
+        for (int j=0; j<mapTileWidth; ++j) {
+            int currTile = grassCalcVec[i][j];
+            if (currTile < 13) {
+                Sprite tempSprite;
+                tempSprite.setVec(grassTileSet[currTile]);
+                tempSprite.setSize(64, 64);
+                tempSprite.setScale(2);
+                tempSprite.setCenter(((j*64)+32), ((i*64)+32));
+                if (windowHidden.isOverlapping(tempSprite)) tempSprite.draw();
+            }
+        }
+    }
 
     user1.draw();
     user2.draw();
@@ -80,8 +138,25 @@ void kbd(GLFWwindow* window, int key, int scancode, int action, int mods) {
         glfwTerminate();
         exit(0);
     }
-    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS) {
+    /*
+    if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+        for (unique_ptr<Shape> &s : grassDrawVec) {
+            // Move all the clouds to the left
+            s->moveX(-0.4);
+            // If a shape has moved off the screen
+            if (s->getCenterX() < -48) {
+                // Set it to the right of the screen so that it passes through again
+                s->setCenterX(width + 48);
+            }
+        }
     }
+    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+    }
+    if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+    }
+    if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+    }
+              */
 }
 
 void cursor(GLFWwindow* window, double x, double y) {
@@ -99,7 +174,13 @@ void mouse(GLFWwindow* window, int button, int action, int mods) {
     }
 }
 
-void devTimer(int dummy) {
+void moveTimer(int dummy, int direction) {
+    for (Shape &s : grassTileSet) {
+        if (direction == 0) s.moveY(1);
+        if (direction == 1) s.moveX(-1);
+        if (direction == 2) s.moveY(-1);
+        if (direction == 3) s.moveX(1);
+    }
 }
 
 /* Main function: GLUT runs as a console application starting at main()  */
@@ -108,7 +189,7 @@ int main(int argc, char** argv) {
     if (!glfwInit()) exit(EXIT_FAILURE);
 
     GLFWwindow* window;
-    window = glfwCreateWindow(width, height, "Duck Hunt", NULL, NULL);
+    window = glfwCreateWindow(width, height, "", NULL, NULL);
     if (!window) {
         glfwTerminate();
         exit(EXIT_FAILURE);
@@ -122,16 +203,16 @@ int main(int argc, char** argv) {
 
     // register keyboard press event processing function
     // works for numbers, letters, spacebar, etc.
-    glfwSetKeyCallback(window, kbd);
+    //glfwSetKeyCallback(window, kbd);
 
     // handles mouse movement
     glfwSetCursorPosCallback(window, cursor);
 
     // handles mouse clicks
-    glfwSetMouseButtonCallback(window, mouse);
+    //glfwSetMouseButtonCallback(window, mouse);
 
     // handles timer
-    float time = 0.05f;
+    float time = 0;
     float previous = glfwGetTime();
 
     // Enter the event-processing loop
@@ -143,13 +224,14 @@ int main(int argc, char** argv) {
         float delta = now - previous;
         previous = now;
         time -= delta;
-        if (time <= 0.f) {
-            devTimer(0);
-        }
+
 
         display();
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        if (time <= 0.f) {
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+            time = 0.0167;
+        }
     }
     glfwDestroyWindow(window);
     glfwTerminate();
