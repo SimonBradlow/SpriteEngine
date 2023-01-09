@@ -11,29 +11,32 @@ Rect windowHidden;
 color grassGreen(114, 117, 27);
 
 Rect userHidden;
-Rect user1;
-Rect user2;
+Sprite user;
+Sprite userCursor = initSprite("cursor0.png");
+Sprite userClick = initSprite("cursorClick.png");
+Sprite userGrab = initSprite("cursorGrab.png");
+Sprite userGrabbing = initSprite("cursorGrabbing.png");
 
-vector<Sprite> grassTileSet;
+vector<unique_ptr<Sprite>> grassTileSet;
 int mapTileWidth;
 int mapTileHeight;
 vector<vector<int>> grassCalcVec;
 vector<vector<optional<Sprite>>> grassDrawVec;
 
 void initGrass() {
-    grassTileSet.push_back(initSprite("grass1.png"));
-    grassTileSet.push_back(initSprite("grass2.png"));
-    grassTileSet.push_back(initSprite("grass3.png"));
-    grassTileSet.push_back(initSprite("grass4.png"));
-    grassTileSet.push_back(initSprite("grass5.png"));
-    grassTileSet.push_back(initSprite("grass6.png"));
-    grassTileSet.push_back(initSprite("grass7.png"));
-    grassTileSet.push_back(initSprite("grass8.png"));
-    grassTileSet.push_back(initSprite("grass9.png"));
-    grassTileSet.push_back(initSprite("grass10.png"));
-    grassTileSet.push_back(initSprite("grass11.png"));
-    grassTileSet.push_back(initSprite("grass12.png"));
-    grassTileSet.push_back(initSprite("grass0.png"));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass1.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass2.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass3.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass4.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass5.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass6.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass7.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass8.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass9.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass10.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass11.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass12.png")));
+    grassTileSet.push_back(make_unique<Sprite>(initSprite("grass0.png")));
     mapTileWidth = 15;
     mapTileHeight = 10;
     for (int i=0; i<mapTileHeight; ++i) {
@@ -62,14 +65,10 @@ void initUI() {
 void initUser() {
     // Initialize the user to be a 20x20 white block
     // centered in the top left corner of the graphics window
-    user1.setSize(20, 2);
-    user1.setColor(color(0, 0, 0));
-    user1.setCenter(0, 0);
-    user2.setSize(2, 20);
-    user2.setColor(color(0, 0, 0));
-    user2.setCenter(0, 0);
-    userHidden.setSize(20, 20);
+    userHidden.setSize(32, 32);
     userHidden.setCenter(0, 0);
+    user.setVec(userCursor.vec);
+    user.setCenter(0, 0);
 }
 
 void init() {
@@ -115,18 +114,17 @@ void display() {
         for (int j=0; j<mapTileWidth; ++j) {
             int currTile = grassCalcVec[i][j];
             if (currTile < 13) {
-                Sprite tempSprite;
-                tempSprite.setVec(grassTileSet[currTile]);
-                tempSprite.setSize(64, 64);
-                tempSprite.setScale(2);
-                tempSprite.setCenter(((j*64)+32), ((i*64)+32));
-                if (windowHidden.isOverlapping(tempSprite)) tempSprite.draw();
+                unique_ptr<Sprite> &tempSprite = grassTileSet[currTile];
+                tempSprite->setVec(tempSprite->vec);
+                tempSprite->setSize(64, 64);
+                tempSprite->setScale(2);
+                tempSprite->setCenter(((j*64)+32), ((i*64)+32));
+                if (tempSprite->isOverlapping(windowHidden)) tempSprite->draw();
             }
         }
     }
 
-    user1.draw();
-    user2.draw();
+    user.draw();
 
     glFlush();  // Render now
 }
@@ -164,22 +162,25 @@ void cursor(GLFWwindow* window, double x, double y) {
     // passed in as parameters to this function. This will make
     // the user block move with the mouse.
     glfwGetCursorPos(window, &x, &y);
-    user1.setCenter(x, y);
-    user2.setCenter(x, y);
-    userHidden.setCenter(x, y);
+    user.setCenter(x+5, y+5);
+    userHidden.setCenter(x+5, y+5);
 }
 
 void mouse(GLFWwindow* window, int button, int action, int mods) {
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        user.setVec(userClick.vec);
+    }
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
+        user.setVec(userCursor.vec);
     }
 }
 
 void moveTimer(int dummy, int direction) {
-    for (Shape &s : grassTileSet) {
-        if (direction == 0) s.moveY(1);
-        if (direction == 1) s.moveX(-1);
-        if (direction == 2) s.moveY(-1);
-        if (direction == 3) s.moveX(1);
+    for (unique_ptr<Sprite> &s : grassTileSet) {
+        if (direction == 0) s->moveY(1);
+        if (direction == 1) s->moveX(-1);
+        if (direction == 2) s->moveY(-1);
+        if (direction == 3) s->moveX(1);
     }
 }
 
@@ -203,16 +204,15 @@ int main(int argc, char** argv) {
 
     // register keyboard press event processing function
     // works for numbers, letters, spacebar, etc.
-    //glfwSetKeyCallback(window, kbd);
-
+    glfwSetKeyCallback(window, kbd);
     // handles mouse movement
     glfwSetCursorPosCallback(window, cursor);
-
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     // handles mouse clicks
-    //glfwSetMouseButtonCallback(window, mouse);
+    glfwSetMouseButtonCallback(window, mouse);
 
     // handles timer
-    float time = 0;
+    float time = 0.0167;
     float previous = glfwGetTime();
 
     // Enter the event-processing loop
@@ -226,8 +226,8 @@ int main(int argc, char** argv) {
         time -= delta;
 
 
-        display();
         if (time <= 0.f) {
+            display();
             glfwSwapBuffers(window);
             glfwPollEvents();
             time = 0.0167;
